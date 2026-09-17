@@ -1,5 +1,5 @@
 import http from "node:http";
-import { listTasks, createTask, completeTask, updateTaskTitle } from "./handlers.js";
+import { listTasks, createTask, completeTask, updateTaskTitle, deleteTask } from "./handlers.js";
 
 const PORT = 3000;
 
@@ -20,6 +20,9 @@ const server = http.createServer((req, res) => {
     }
     if (req.method === "PATCH" && url.startsWith("/tasks/")) {
       return updateTaskTitle(req, res, url.split("/")[2], body);
+    }
+    if (req.method === "DELETE" && url.startsWith("/tasks/")) {
+      return deleteTask(req, res, url.split("/")[2]);
     }
 
     res.writeHead(404, { "Content-Type": "application/json" });
