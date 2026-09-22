@@ -4,8 +4,27 @@ import { logger } from "./logger.js";
 const MAX = 140;
 
 export function listTasks(req, res) {
+  const qs = req.url.includes("?") ? req.url.split("?")[1] : "";
+  const params = new URLSearchParams(qs);
+  const page = Number(params.get("page") ?? "1");
+  const limit = Number(params.get("limit") ?? "20");
+
+  if (!Number.isInteger(page) || page < 1) {
+    res.writeHead(400, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({ error: "invalid page" }));
+  }
+  if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
+    res.writeHead(400, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({ error: "invalid limit" }));
+  }
+
+  const all = store.all();
+  const total = all.length;
+  const start = (page - 1) * limit;
+  const items = all.slice(start, start + limit);
+
   res.writeHead(200, { "Content-Type": "application/json" });
-  res.end(JSON.stringify(store.all()));
+  res.end(JSON.stringify({ items, total, page, limit }));
 }
 
 export function createTask(req, res, body) {
