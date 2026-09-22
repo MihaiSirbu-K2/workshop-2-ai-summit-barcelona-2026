@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { updateTaskTitle } from "./handlers.js";
+import { updateTaskTitle, deleteTask } from "./handlers.js";
 import * as store from "./store.js";
 
 const req = { headers: {} };
@@ -11,6 +11,28 @@ function makeRes() {
   res.end = (data) => { res.body = data; };
   return res;
 }
+
+test("deleteTask: 400 when id is not a positive integer", () => {
+  const res = makeRes();
+  deleteTask(req, res, "abc");
+  assert.equal(res.statusCode, 400);
+  assert.deepEqual(JSON.parse(res.body), { error: "invalid id" });
+});
+
+test("deleteTask: 404 when task does not exist", () => {
+  const res = makeRes();
+  deleteTask(req, res, "99999");
+  assert.equal(res.statusCode, 404);
+  assert.deepEqual(JSON.parse(res.body), { error: "task not found" });
+});
+
+test("deleteTask: 204 and task is removed on success", () => {
+  const task = store.add("to be deleted");
+  const res = makeRes();
+  deleteTask(req, res, String(task.id));
+  assert.equal(res.statusCode, 204);
+  assert.equal(store.find(task.id), undefined);
+});
 
 test("updateTaskTitle: 400 when title field is missing", () => {
   const res = makeRes();

@@ -1,4 +1,5 @@
 import * as store from "./store.js";
+import { logger } from "./logger.js";
 
 const MAX = 140;
 
@@ -13,7 +14,7 @@ export function createTask(req, res, body) {
     throw "title too long";
   }
   const task = store.add(parsed.title);
-  console.log("created task " + task.id + " for " + req.headers["x-user"]);
+  logger.info("task.created", { taskId: task.id, user: req.headers["x-user"] });
   res.writeHead(201, { "Content-Type": "application/json" });
   res.end(JSON.stringify(task));
 }
@@ -23,6 +24,22 @@ export function completeTask(req, res, id) {
   task.done = true;
   res.writeHead(200, { "Content-Type": "application/json" });
   res.end(JSON.stringify(task));
+}
+
+export function deleteTask(req, res, id) {
+  const numId = Number(id);
+  if (!Number.isInteger(numId) || numId < 1) {
+    res.writeHead(400, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({ error: "invalid id" }));
+  }
+  const task = store.find(numId);
+  if (!task) {
+    res.writeHead(404, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({ error: "task not found" }));
+  }
+  store.remove(numId);
+  res.writeHead(204);
+  res.end();
 }
 
 export function updateTaskTitle(req, res, id, body) {
