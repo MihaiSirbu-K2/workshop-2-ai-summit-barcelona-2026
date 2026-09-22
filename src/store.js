@@ -23,5 +23,12 @@ export function remove(id) {
   tasks.splice(i, 1);
 }
 
+export function updateTitle(id, title) {
+  const task = find(id);
+  if (!task) return null;
+  task.title = title;
+  return task;
+}
+
 add("read the workshop README");
 add("close the loop");
